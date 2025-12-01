@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>For Serena 💖</title>
+    <title>For Serena: A Question</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Confetti Library for Motion Graphics -->
+    <!-- Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -14,26 +14,223 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); /* Slightly different purple/pink gradient */
             overflow: hidden;
-            touch-action: none; /* Prevents zooming/scrolling on mobile while playing */
+            touch-action: none;
         }
         
         .romantic-font {
             font-family: 'Dancing Script', cursive;
         }
 
-        /* Background Floating Hearts Animation */
-        .bg-heart {
+        /* Floating background items */
+        .bg-floater {
             position: absolute;
-            color: rgba(255, 255, 255, 0.3);
-            animation: floatUp 10s linear infinite;
+            color: rgba(255, 255, 255, 0.4);
+            animation: floatUp 12s linear infinite;
             bottom: -100px;
             pointer-events: none;
             z-index: 0;
         }
 
         @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.8; }
+            100% { transform: translateY(-110vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+
+        /* Card Animation */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Yes Button Pulse */
+        .pulse-btn {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); transform: scale(1); }
+            70% { box-shadow: 0 0 0 15px rgba(147, 51, 234, 0); transform: scale(1.05); }
+            100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); transform: scale(1); }
+        }
+
+        /* Runaway Button Smoothness */
+        #noBtn {
+            transition: top 0.2s ease, left 0.2s ease, background-color 0.3s ease;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex justify-center items-center relative overflow-hidden">
+
+    <!-- Background Elements Container -->
+    <div id="bg-container" class="absolute inset-0 w-full h-full pointer-events-none"></div>
+
+    <!-- Main Content Card -->
+    <div id="card" class="glass-card p-8 md:p-12 rounded-3xl shadow-2xl text-center max-w-lg w-[90%] z-10 relative">
+        <h1 class="text-5xl md:text-7xl text-purple-700 font-bold mb-6 romantic-font drop-shadow-sm leading-tight">
+            Serena,<br>can we meet tomorrow?
+        </h1>
+        
+        <p class="text-purple-900/70 mb-10 text-lg font-medium">I'd love to see you...</p>
+        
+        <div class="flex flex-col md:flex-row gap-6 justify-center items-center h-48 md:h-32 relative">
+            <!-- Yes Button -->
+            <button id="yesBtn" onclick="acceptInvitation()" class="pulse-btn bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-4 px-12 rounded-full text-2xl shadow-lg transform transition hover:scale-110 z-20 w-64 border-2 border-white/50">
+                Yes! 📅
+            </button>
+
+            <!-- No Button -->
+            <button id="noBtn" class="bg-gray-400 text-white font-bold py-4 px-8 rounded-full text-lg shadow-md hover:bg-gray-500 z-20 whitespace-nowrap min-w-[150px]">
+                No 🙅‍♀️
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="success-overlay" class="fixed inset-0 bg-purple-600/90 backdrop-blur-md hidden flex-col justify-center items-center z-50 transition-opacity duration-500 opacity-0 text-white">
+        <h1 class="text-8xl mb-6 animate-bounce">🥳✨</h1>
+        <h2 class="text-5xl md:text-7xl font-bold romantic-font text-center px-4 drop-shadow-md">
+            It's a date!
+        </h2>
+        <p class="mt-8 text-2xl font-light text-center px-4">See you tomorrow, Serena! <br> Can't wait! ❤️</p>
+        <button onclick="location.reload()" class="mt-12 text-sm underline opacity-70 hover:opacity-100">Replay</button>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const card = document.getElementById('card');
+        
+        // Phrases for the No button
+        const phrases = [
+            "Are you sure?",
+            "Think again!",
+            "Take your time...",
+            "Really?",
+            "Don't say no!",
+            "Too slow!",
+            "Try the other one!",
+            "I'm slippery!",
+            "Not this button!",
+            "Just click Yes!",
+            "Tomorrow will be fun!",
+            "You can't catch me!",
+            "Look left ->"
+        ];
+
+        // Background Animation Generator
+        function createBackgroundFloaters() {
+            const container = document.getElementById('bg-container');
+            const el = document.createElement('div');
+            el.classList.add('bg-floater');
+            // Mix of flowers and hearts
+            const icons = ['🌸', '✨', '💖', '📅', '🦋'];
+            el.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+            
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = Math.random() * 5 + 8 + 's';
+            el.style.fontSize = Math.random() * 25 + 15 + 'px';
+            container.appendChild(el);
+
+            setTimeout(() => {
+                el.remove();
+            }, 12000);
+        }
+        setInterval(createBackgroundFloaters, 600);
+
+        // Logic to move the button
+        function runAway() {
+            // Get window dimensions
+            const maxWidth = window.innerWidth - noBtn.offsetWidth - 40;
+            const maxHeight = window.innerHeight - noBtn.offsetHeight - 40;
+
+            // Random coordinates
+            const randomX = Math.random() * maxWidth;
+            const randomY = Math.random() * maxHeight;
+
+            // Switch to fixed positioning
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = Math.max(20, randomX) + 'px';
+            noBtn.style.top = Math.max(20, randomY) + 'px';
+            
+            // Random rotation
+            const rotation = (Math.random() - 0.5) * 30;
+            noBtn.style.transform = `rotate(${rotation}deg)`;
+
+            // Change Text
+            const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+            noBtn.innerText = randomPhrase;
+            
+            // Change color to make it look "glitchy" or active
+            const colors = ['#9ca3af', '#ef4444', '#f59e0b', '#6366f1'];
+            noBtn.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Desktop Interaction
+        noBtn.addEventListener('mouseover', runAway);
+
+        // Mobile Interaction (Prevent tap)
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            runAway();
+        });
+
+        // Click Fallback
+        noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            runAway();
+        });
+
+        // Success Function
+        function acceptInvitation() {
+            const overlay = document.getElementById('success-overlay');
+            
+            // Trigger Confetti
+            var duration = 3000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#a855f7', '#ec4899', '#ffffff']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#a855f7', '#ec4899', '#ffffff']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+
+            // Show Overlay
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+            }, 50);
+        }
+    </script>
+</body>
+</html>
+
             0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
             10% { opacity: 0.8; }
             100% { transform: translateY(-110vh) rotate(360deg) scale(1.2); opacity: 0; }
